@@ -21,7 +21,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = env.get("SECRET_KEY")
+SECRET_KEY = env.get("DJANGO_SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.get("DEBUG")
@@ -127,5 +127,6 @@ STATIC_URL = "static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-CELERY_BROKER_URL = env.get("CELERY_BROKER", "redis://redis:6379/0")
-CELERY_RESULT_BACKEND = env.get("CELERY_BACKEND", "redis://redis:6379/0")
+CELERY_BROKER_URL = env.get("CELERY_BROKER_URL")
+CELERY_RESULT_BACKEND = env.get("CELERY_RESULT_BACKEND")
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True

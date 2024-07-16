@@ -1,14 +1,14 @@
-all: stockwatcher/manage.py
-	python3 stockwatcher/manage.py runserver
+all: src/manage.py
+	python3 src/manage.py runserver
 
 migrations:
-	python3 stockwatcher/manage.py makemigrations
+	python3 src/manage.py makemigrations
 
 migrate:
-	python3 stockwatcher/manage.py migrate
+	python3 src/manage.py migrate
 
 requirements:
-	pip freeze > stockwatcher/requirements.txt
+	pip freeze > src/requirements.txt
 
 docker:
 	docker-compose up -d --build
@@ -24,5 +24,5 @@ docker-stop:
 
 docker-clear: docker-stop
 	docker rm django celery redis
-	docker rmi redis:7.0.11-alpine stock-watcher-django stock-watcher-celery
+	docker rmi redis stock-watcher-django stock-watcher-celery
 	docker volume rm stock-watcher-volume stock-watcher-redis-data-volume
