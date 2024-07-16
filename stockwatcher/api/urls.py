@@ -2,9 +2,19 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
+    #  path(
+    #         "",
+    #         views.StockList.as_view(),
+    #         name="stock-view-list",
+    #     ),
     path(
-        "stockprice/",
-        views.StockPriceListCreate.as_view(),
-        name="stock-price-view-create",
-    )
+        "",
+        views.StockListCreate.as_view(),
+        name="stock-view-list-create",
+    ),
+    path(
+        "<int:pk>/",
+        views.StockRetrieveUpdateDestroy.as_view(),
+        name="stock-view-retrieve-update-destroy",
+    ),
 ]
