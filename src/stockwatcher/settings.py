@@ -40,6 +40,8 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "djmoney",
+    "django_celery_beat",
+    "django_celery_results",
     "api",
     "watcher",
 ]
@@ -129,4 +131,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 CELERY_BROKER_URL = env.get("CELERY_BROKER_URL")
 CELERY_RESULT_BACKEND = env.get("CELERY_RESULT_BACKEND")
-CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = env.get(
+    "CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP"
+)
+CELERY_BEAT_SCHEDULER = env.get("CELERY_BEAT_SCHEDULER")

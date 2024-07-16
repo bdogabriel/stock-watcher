@@ -11,7 +11,7 @@ services:
   django:
     container_name: django
     build:
-      context: ./stockwatcher
+      context: ./src
     command: python3 manage.py runserver 0.0.0.0:8000
     volumes:
       - stock-watcher:/usr/src/app/
@@ -23,14 +23,16 @@ services:
       - ALLOWED_HOSTS=${ALLOWED_HOSTS}
       - CELERY_BROKER_URL=${CELERY_BROKER_URL}
       - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
+      - CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP=${CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP}
+      - CELERY_BEAT_SCHEDULER=${CELERY_BEAT_SCHEDULER}
     depends_on:
       - redis
 
   celery:
     container_name: celery
     build:
-      context: ./stockwatcher
-    command: celery --app=stockwatcher worker -l INFO
+      context: ./src
+    command: celery -A stockwatcher worker --beat -l INFO
     volumes:
       - stock-watcher:/usr/src/app/
     environment:
@@ -39,6 +41,8 @@ services:
       - ALLOWED_HOSTS=${ALLOWED_HOSTS}
       - CELERY_BROKER_URL=${CELERY_BROKER_URL}
       - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
+      - CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP=${CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP}
+      - CELERY_BEAT_SCHEDULER=${CELERY_BEAT_SCHEDULER}
     depends_on:
       - redis
       - django
