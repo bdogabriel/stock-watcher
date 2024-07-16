@@ -25,3 +25,4 @@ docker-stop:
 docker-clear: docker-stop
 	docker rm django celery redis
 	docker rmi redis:7.0.11-alpine stock-watcher-django stock-watcher-celery
+	docker volume rm stock-watcher-volume stock-watcher-redis-data-volume

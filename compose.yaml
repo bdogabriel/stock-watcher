@@ -3,6 +3,8 @@ services:
   redis:
     container_name: redis
     image: redis:7.0.11-alpine
+    volumes:
+      - redis-data:/data
 
   django:
     container_name: django
@@ -10,7 +12,7 @@ services:
       context: ./stockwatcher
     command: python3 manage.py runserver 0.0.0.0:8000
     volumes:
-      - ./stockwatcher:/usr/src/app/
+      - stock-watcher:/usr/src/app/
     ports:
       - 8001:8000
     environment:
@@ -24,11 +26,18 @@ services:
     container_name: celery
     build:
       context: ./stockwatcher
+    command: celery --app=stockwatcher worker -l INFO
     volumes:
-      - ./stockwatcher:/usr/src/app/
+      - stock-watcher:/usr/src/app/
     environment:
       - DEBUG=1
       - SECRET_KEY=django-insecure-f&qv6038$(%v4&426s=q-@f^(xkw2a&(l%4(kia(kbm0#2^)en
       - ALLOWED_HOSTS=localhost,127.0.0.1
     depends_on:
       - redis
+
+volumes:
+  stock-watcher:
+    name: stock-watcher-volume
+  redis-data:
+    name: stock-watcher-redis-data-volume
