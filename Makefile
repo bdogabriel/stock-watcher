@@ -1,5 +1,8 @@
-all: src/manage.py
+all:
 	python3 src/manage.py runserver
+
+celery:
+	celery --workdir=src -A stockwatcher worker --beat -l INFO
 
 migrations:
 	python3 src/manage.py makemigrations

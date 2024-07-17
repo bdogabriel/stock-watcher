@@ -15,7 +15,7 @@ def currency_str_to_number(str_):
     return bnums.parse_decimal(value, locale=locale)
 
 
-def get_stock_price(ticker, exchange):
+def scrape_stock_price(ticker, exchange):
     if not ticker or not exchange:
         return None
 

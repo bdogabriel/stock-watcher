@@ -1,6 +1,5 @@
 from django.db import models
 from djmoney.models.fields import MoneyField
-from djmoney.money import Money
 
 
 class Stock(models.Model):
@@ -18,6 +17,7 @@ class Stock(models.Model):
     current_price = MoneyField(max_digits=19, decimal_places=4, default_currency="BRL")
     created_timestamp = models.DateTimeField(auto_now_add=True)
     uptaded_timestamp = models.DateTimeField(auto_now=True)
+    watch = models.BooleanField(default=True, help_text="Scrape price every minute?")
 
     def __str__(self):
         return f"{self.ticker},{self.exchange},{self.title},{self.currency},{self.current_price},{self.created_timestamp},{self.uptaded_timestamp};"
