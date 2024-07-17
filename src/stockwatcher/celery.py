@@ -14,6 +14,6 @@ app.conf.beat_schedule = {
     "watch_stock_every_minute": {
         "task": "watcher.tasks.watch_stock",
         "schedule": 60.0,
-        "args": ("ASX", "ASX", "USD"),
+        "args": ("ASX", "ASX"),
     }
 }

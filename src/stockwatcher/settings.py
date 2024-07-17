@@ -42,7 +42,7 @@ INSTALLED_APPS = [
     "djmoney",
     "django_celery_beat",
     "django_celery_results",
-    "api",
+    "stocks",
     "watcher",
 ]
 

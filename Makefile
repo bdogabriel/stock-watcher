@@ -4,7 +4,7 @@ all: src/manage.py
 migrations:
 	python3 src/manage.py makemigrations
 
-migrate:
+migrate: migrations
 	python3 src/manage.py migrate
 
 requirements:
@@ -26,3 +26,5 @@ docker-clear: docker-stop
 	docker rm django celery redis
 	docker rmi redis stock-watcher-django stock-watcher-celery
 	docker volume rm stock-watcher-volume stock-watcher-redis-data-volume
+
+rebuild: docker-clear docker
