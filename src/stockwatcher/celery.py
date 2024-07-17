@@ -9,11 +9,3 @@ app = Celery("stockwatcher")
 app.config_from_object("django.conf:settings", namespace="CELERY")
 
 app.autodiscover_tasks()
-
-app.conf.beat_schedule = {
-    "watch_stock_every_minute": {
-        "task": "watcher.tasks.watch_stock",
-        "schedule": 60.0,
-        "args": ("ASX", "ASX"),
-    }
-}

@@ -4,7 +4,7 @@ all: src/manage.py
 migrations:
 	python3 src/manage.py makemigrations
 
-migrate: migrations
+migrate:
 	python3 src/manage.py migrate
 
 requirements:
