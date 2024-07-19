@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "django_celery_beat",
     "django_celery_results",
     "stocks",
+    "core",
 ]
 
 MIDDLEWARE = [
@@ -111,7 +112,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = "Brazil/East"
 
 USE_I18N = True
 
@@ -128,9 +129,15 @@ STATIC_URL = "static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# Celery
 CELERY_BROKER_URL = env.get("CELERY_BROKER_URL")
 CELERY_RESULT_BACKEND = env.get("CELERY_RESULT_BACKEND")
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = env.get(
     "CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP"
 )
 CELERY_BEAT_SCHEDULER = env.get("CELERY_BEAT_SCHEDULER")
+CELERY_TIMEZONE = env.get("CELERY_TIMEZONE")
+
+# Others
+LOGIN_URL = "core:login"
+LOGIN_REDIRECT_URL = "core:home"

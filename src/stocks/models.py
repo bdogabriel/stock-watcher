@@ -4,6 +4,8 @@ from djmoney.models.fields import MoneyField
 
 class Stock(models.Model):
     class Meta:
+        verbose_name_plural = "Stocks"
+        ordering = ("ticker",)
         constraints = [
             models.UniqueConstraint(
                 fields=["ticker", "exchange"], name="stock_ticker_exchange"
@@ -36,6 +38,9 @@ class StockPriceManager(models.Manager):
 
 
 class StockPrice(models.Model):
+    class Meta:
+        verbose_name_plural = "Stock Prices"
+
     stock = models.ForeignKey(
         Stock, on_delete=models.CASCADE, related_name="stock_prices"
     )
