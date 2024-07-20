@@ -141,3 +141,4 @@ CELERY_TIMEZONE = env.get("CELERY_TIMEZONE")
 # Others
 LOGIN_URL = "core:login"
 LOGIN_REDIRECT_URL = "core:home"
+LOGOUT_REDIRECT_URL = "core:home"
