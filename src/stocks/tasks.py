@@ -19,7 +19,7 @@ def watch_stock_task(ticker, exchange):
 
 @shared_task
 def watch_all_stocks_task():
-    qs = Stock.objects.filter(watch=True)
+    qs = Stock.objects.all()
     for obj in qs:
         ticker = obj.ticker
         exchange = obj.exchange

@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     "django_celery_results",
     "stocks",
     "core",
+    "helpers",
 ]
 
 MIDDLEWARE = [

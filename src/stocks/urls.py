@@ -4,19 +4,16 @@ from . import views
 app_name = "stocks"
 
 urlpatterns = [
-    #  path(
-    #         "",
-    #         views.StockList.as_view(),
-    #         name="stock-view-list",
-    #     ),
-    # path(
-    #     "",
-    #     views.StockListCreate.as_view(),
-    #     name="stock-view-list-create",
-    # ),
-    # path(
-    #     "<int:pk>/",
-    #     views.StockRetrieveUpdateDestroy.as_view(),
-    #     name="stock-view-retrieve-update-destroy",
-    # ),
+    path("", views.StocksRedirectView.as_view(), name="redirect"),
+    path("dashboard/", views.StocksListView.as_view(), name="dashboard"),
+    path(
+        "add/",
+        views.StocksCreateView.as_view(),
+        name="add",
+    ),
+    path(
+        "delete/<int:pk>/",
+        views.StocksDeleteView.as_view(),
+        name="delete",
+    ),
 ]

@@ -1,5 +1,6 @@
 from django.db import models
 from djmoney.models.fields import MoneyField
+from django.contrib.auth.models import User
 
 
 class Stock(models.Model):
@@ -15,14 +16,24 @@ class Stock(models.Model):
     ticker = models.CharField(max_length=10)
     exchange = models.CharField(max_length=10)
     title = models.CharField(max_length=200, blank=True, null=True)
-    currency = models.CharField(max_length=3)
-    current_price = MoneyField(max_digits=19, decimal_places=4, default_currency="BRL")
+    currency = models.CharField(max_length=3, blank=True, null=True)
+    current_price = MoneyField(
+        max_digits=19, decimal_places=4, default_currency="BRL", blank=True, null=True
+    )
     created_timestamp = models.DateTimeField(auto_now_add=True)
     uptaded_timestamp = models.DateTimeField(auto_now=True)
-    watch = models.BooleanField(default=True, help_text="Scrape price every minute?")
+    users = models.ManyToManyField(User)
 
     def __str__(self):
         return f"{self.ticker},{self.exchange},{self.title},{self.currency},{self.current_price},{self.created_timestamp},{self.uptaded_timestamp};"
+
+    def user_delete(self, user):
+        self.users.remove(user)
+        self.save()
+
+    def user_add(self, user):
+        self.users.add(user)
+        self.save()
 
 
 class StockPriceManager(models.Manager):

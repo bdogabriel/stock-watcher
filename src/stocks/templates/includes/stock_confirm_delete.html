@@ -1,0 +1,6 @@
+<form method="post" class="card">
+  {% csrf_token %}
+  <h2>Are you sure?</h2>
+  {% include 'includes/button.html' with color='cyan' type='submit' text='Yes' %}
+  <a href="{% url 'stocks:dashboard' %}">{% include 'includes/button.html' with color='slate' text='No' %}</a>
+</form>

@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block title %}
+  Dashboard
+{% endblock %}
+{% block content %}
+  <h1>Dashboard</h1>
+
+  <h1>Stocks</h1>
+  <ul>
+    {% for stock in object_list %}
+      <li>
+        {{ stock.ticker }} : {{ stock.exchange }}
+        {% if delete_stock == stock %}
+          {% include 'includes/stock_confirm_delete.html' %}
+        {% else %}
+          <a href="{% url 'stocks:delete' pk=stock.id %}">{% include 'includes/button.html' with type='submit' color='rose' text='Remove' %}</a>
+        {% endif %}
+      </li>
+    {% empty %}
+      <li>No stocks yet.</li>
+    {% endfor %}
+  </ul>
+
+  {% if add_stock %}
+    <div class="w-1/4 my-6 p-6 mt-10 bg-white shadow-lg rounded-xl">
+      {% include 'includes/form.html' with form=form form_title='Add Stock' %}
+    </div>
+    <a href="{% url 'stocks:dashboard' %}">{% include 'includes/button.html' with color='rose' text='Cancel' %}</a>
+  {% else %}
+    <a href="{% url 'stocks:add' %}">{% include 'includes/button.html' with color='cyan' text='Add Stock' %}</a>
+  {% endif %}
+{% endblock %}

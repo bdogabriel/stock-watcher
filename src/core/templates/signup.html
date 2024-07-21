@@ -3,5 +3,7 @@
   Signup
 {% endblock %}
 {% block content %}
-  {% include 'includes/form.html' with form=form form_title='Signup' %}
+  <div class="w-1/3 my-6 p-6 mx-auto mt-10 bg-white shadow-lg rounded-xl">
+    {% include 'includes/form.html' with form=form form_title='Signup' %}
+  </div>
 {% endblock %}
