@@ -5,7 +5,7 @@ from django.urls import reverse_lazy
 from django.shortcuts import redirect
 from .forms import StockAddForm
 from .models import Stock, StockPrice
-from .serializers import StockPriceSerializer
+from .serializers import StockPriceSerializer, StockSerializer
 
 
 class StocksDashboardMixin(LoginRequiredMixin):
@@ -21,7 +21,8 @@ class StocksView(StocksDashboardMixin, View):  # base view
     def get_context_data(self, **kwargs):
         kwargs["stocks_list"] = Stock.objects.filter(users=self.request.user)
         if self.watch_stock:
-            kwargs["watch_stock"] = self.watch_stock
+            stock_serializer = StockSerializer(self.watch_stock)
+            kwargs["watch_stock"] = stock_serializer.data
             stock_price_serializer = StockPriceSerializer(
                 StockPrice.objects.filter(stock=self.watch_stock), many=True
             )

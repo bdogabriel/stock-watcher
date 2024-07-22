@@ -40,7 +40,9 @@
 
   {% if watch_stock %}
     {{ watch_stock }}
+    <br />
     {{ watch_stock_prices }}
+    {{ watch_stock|json_script:'watch_stock' }}
 
     <div>
       <canvas id="stock_price_chart"></canvas>

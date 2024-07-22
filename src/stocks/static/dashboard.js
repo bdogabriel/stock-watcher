@@ -1,5 +1,11 @@
-url = "ws://" + window.location.host + "/ws/stocks/1/";
-socket = new WebSocket(url);
+const watchStock = JSON.parse(
+	document.getElementById("watch_stock").textContent
+);
+
+console.log("watch stock", watchStock);
+
+webSocketUrl = `ws://${window.location.host}/ws/stocks/${watchStock.id}/`;
+socket = new WebSocket(webSocketUrl);
 
 socket.onmessage = function (e) {
 	console.log("server: " + e.data);

@@ -5,9 +5,7 @@ services:
         restart: always
         volumes:
             - redis-data:/data
-        ports:
-            - 6380:6380
-        entrypoint: redis-server --port 6380 --appendonly yes
+        entrypoint: redis-server --port ${REDIS_PORT} --appendonly yes
 
     django:
         container_name: django
@@ -22,10 +20,12 @@ services:
             - DEBUG=${DEBUG}
             - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
             - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+            - REDIS_PORT=${REDIS_PORT}
             - CELERY_BROKER_URL=${CELERY_BROKER_URL}
             - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
             - CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP=${CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP}
             - CELERY_BEAT_SCHEDULER=${CELERY_BEAT_SCHEDULER}
+            - CELERY_TIMEZONE=${CELERY_TIMEZONE}
         depends_on:
             - redis
 
@@ -40,10 +40,12 @@ services:
             - DEBUG=${DEBUG}
             - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
             - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+            - REDIS_PORT=${REDIS_PORT}
             - CELERY_BROKER_URL=${CELERY_BROKER_URL}
             - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
             - CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP=${CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP}
             - CELERY_BEAT_SCHEDULER=${CELERY_BEAT_SCHEDULER}
+            - CELERY_TIMEZONE=${CELERY_TIMEZONE}
         depends_on:
             - redis
             - django
