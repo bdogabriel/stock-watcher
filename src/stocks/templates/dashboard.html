@@ -1,13 +1,21 @@
 {% extends 'base.html' %}
+{% load static %}
+
+{% block scripts %}
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="{% static 'dashboard.js' %}" defer></script>
+{% endblock %}
+
 {% block title %}
   Dashboard
 {% endblock %}
+
 {% block content %}
   <h1>Dashboard</h1>
 
   <h1>Stocks</h1>
   <ul>
-    {% for stock in object_list %}
+    {% for stock in stocks_list %}
       <li>
         {{ stock.ticker }} : {{ stock.exchange }}
         {% if delete_stock == stock %}
@@ -28,5 +36,39 @@
     <a href="{% url 'stocks:dashboard' %}">{% include 'includes/button.html' with color='rose' text='Cancel' %}</a>
   {% else %}
     <a href="{% url 'stocks:add' %}">{% include 'includes/button.html' with color='cyan' text='Add Stock' %}</a>
+  {% endif %}
+
+  {% if watch_stock %}
+    {{ watch_stock }}
+    {{ watch_stock_prices }}
+
+    <div>
+      <canvas id="stock_price_chart"></canvas>
+    </div>
+
+    <script>
+      const ctx = document.getElementById('stock_price_chart')
+      
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
+          datasets: [
+            {
+              label: '# of Votes',
+              data: [12, 19, 3, 5, 2, 3],
+              borderWidth: 1
+            }
+          ]
+        },
+        options: {
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      })
+    </script>
   {% endif %}
 {% endblock %}

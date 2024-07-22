@@ -6,6 +6,7 @@ app_name = "stocks"
 urlpatterns = [
     path("", views.StocksRedirectView.as_view(), name="redirect"),
     path("dashboard/", views.StocksListView.as_view(), name="dashboard"),
+    path("<int:pk>/", views.StocksDetailView.as_view(), name="detail"),
     path(
         "add/",
         views.StocksCreateView.as_view(),

@@ -1,11 +1,11 @@
-from django.views.generic import RedirectView, View
+from django.views.generic import RedirectView, View, ListView, DetailView
 from django.views.generic.edit import CreateView, DeleteView
-from django.views.generic.list import ListView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
 from django.shortcuts import redirect
 from .forms import StockAddForm
-from .models import Stock
+from .models import Stock, StockPrice
+from .serializers import StockPriceSerializer
 
 
 class StocksDashboardMixin(LoginRequiredMixin):
@@ -16,9 +16,16 @@ class StocksView(StocksDashboardMixin, View):  # base view
     template_name = "dashboard.html"
     success_url = reverse_lazy("stocks:dashboard")
     model = Stock
+    watch_stock = None
 
     def get_context_data(self, **kwargs):
-        kwargs["object_list"] = Stock.objects.filter(users=self.request.user)
+        kwargs["stocks_list"] = Stock.objects.filter(users=self.request.user)
+        if self.watch_stock:
+            kwargs["watch_stock"] = self.watch_stock
+            stock_price_serializer = StockPriceSerializer(
+                StockPrice.objects.filter(stock=self.watch_stock), many=True
+            )
+            kwargs["watch_stock_prices"] = stock_price_serializer.data
         return super().get_context_data(**kwargs)
 
 
@@ -61,4 +68,10 @@ class StocksDeleteView(StocksView, DeleteView):
 
     def get_context_data(self, **kwargs):
         kwargs["delete_stock"] = self.object
+        return super().get_context_data(**kwargs)
+
+
+class StocksDetailView(StocksView, DetailView):
+    def get_context_data(self, **kwargs):
+        self.watch_stock = self.object
         return super().get_context_data(**kwargs)

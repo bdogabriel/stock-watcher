@@ -35,6 +35,11 @@ class Stock(models.Model):
         self.users.add(user)
         self.save()
 
+    def save(self, *args, **kwargs):
+        self.ticker = self.ticker.upper()
+        self.exchange = self.exchange.upper()
+        super().save(*args, **kwargs)
+
 
 class StockPriceManager(models.Manager):
     def create_stock_price(self, data):

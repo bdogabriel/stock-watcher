@@ -11,7 +11,9 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 from pathlib import Path
-from os import environ as env
+from os import environ
+
+env = environ.get
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -21,29 +23,31 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = env.get("DJANGO_SECRET_KEY")
+SECRET_KEY = env("DJANGO_SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env.get("DEBUG")
+DEBUG = env("DEBUG")
 
-ALLOWED_HOSTS = env.get("ALLOWED_HOSTS").split(",")
+ALLOWED_HOSTS = env("ALLOWED_HOSTS").split(",")
 
 
 # Application definition
 
 INSTALLED_APPS = [
+    "daphne",
+    "rest_framework",
+    "djmoney",
+    "django_celery_beat",
+    "django_celery_results",
+    "channels",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "rest_framework",
-    "djmoney",
-    "django_celery_beat",
-    "django_celery_results",
-    "stocks",
     "core",
+    "stocks",
     "helpers",
 ]
 
@@ -75,7 +79,8 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "stockwatcher.wsgi.application"
+# WSGI_APPLICATION = "stockwatcher.wsgi.application"
+ASGI_APPLICATION = "stockwatcher.asgi.application"
 
 
 # Database
@@ -131,13 +136,21 @@ STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Celery
-CELERY_BROKER_URL = env.get("CELERY_BROKER_URL")
-CELERY_RESULT_BACKEND = env.get("CELERY_RESULT_BACKEND")
-CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = env.get(
+CELERY_BROKER_URL = env("CELERY_BROKER_URL")
+CELERY_RESULT_BACKEND = env("CELERY_RESULT_BACKEND")
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = env(
     "CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP"
 )
-CELERY_BEAT_SCHEDULER = env.get("CELERY_BEAT_SCHEDULER")
-CELERY_TIMEZONE = env.get("CELERY_TIMEZONE")
+CELERY_BEAT_SCHEDULER = env("CELERY_BEAT_SCHEDULER")
+CELERY_TIMEZONE = env("CELERY_TIMEZONE")
+
+# Channels
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {"hosts": [("127.0.0.1", 6380)]},
+    }
+}
 
 # Others
 LOGIN_URL = "core:login"

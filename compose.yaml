@@ -1,54 +1,55 @@
 services:
+    redis:
+        container_name: redis
+        image: redis
+        restart: always
+        volumes:
+            - redis-data:/data
+        ports:
+            - 6380:6380
+        entrypoint: redis-server --port 6380 --appendonly yes
 
-  redis:
-    container_name: redis
-    image: redis
-    restart: always
-    volumes:
-      - redis-data:/data
-    entrypoint: redis-server --appendonly yes
+    django:
+        container_name: django
+        build:
+            context: ./src
+        command: python3 manage.py runserver 0.0.0.0:8000
+        volumes:
+            - stock-watcher:/usr/src/app/
+        ports:
+            - 8001:8000
+        environment:
+            - DEBUG=${DEBUG}
+            - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
+            - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+            - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+            - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
+            - CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP=${CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP}
+            - CELERY_BEAT_SCHEDULER=${CELERY_BEAT_SCHEDULER}
+        depends_on:
+            - redis
 
-  django:
-    container_name: django
-    build:
-      context: ./src
-    command: python3 manage.py runserver 0.0.0.0:8000
-    volumes:
-      - stock-watcher:/usr/src/app/
-    ports:
-      - 8001:8000
-    environment:
-      - DEBUG=${DEBUG}
-      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
-      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
-      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
-      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
-      - CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP=${CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP}
-      - CELERY_BEAT_SCHEDULER=${CELERY_BEAT_SCHEDULER}
-    depends_on:
-      - redis
-
-  celery:
-    container_name: celery
-    build:
-      context: ./src
-    command: celery -A stockwatcher worker --beat -l INFO
-    volumes:
-      - stock-watcher:/usr/src/app/
-    environment:
-      - DEBUG=${DEBUG}
-      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
-      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
-      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
-      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
-      - CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP=${CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP}
-      - CELERY_BEAT_SCHEDULER=${CELERY_BEAT_SCHEDULER}
-    depends_on:
-      - redis
-      - django
+    celery:
+        container_name: celery
+        build:
+            context: ./src
+        command: celery -A stockwatcher worker --beat -l INFO
+        volumes:
+            - stock-watcher:/usr/src/app/
+        environment:
+            - DEBUG=${DEBUG}
+            - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
+            - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+            - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+            - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
+            - CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP=${CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP}
+            - CELERY_BEAT_SCHEDULER=${CELERY_BEAT_SCHEDULER}
+        depends_on:
+            - redis
+            - django
 
 volumes:
-  stock-watcher:
-    name: stock-watcher-volume
-  redis-data:
-    name: stock-watcher-redis-data-volume
+    stock-watcher:
+        name: stock-watcher-volume
+    redis-data:
+        name: stock-watcher-redis-data-volume
