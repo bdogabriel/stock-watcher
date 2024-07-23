@@ -3,24 +3,39 @@ const watchStock = JSON.parse(
 );
 const stockId = watchStock.id;
 
-webSocketUrl = `ws://${window.location.host}/ws/stocks/${stockId}/`;
-socket = new WebSocket(webSocketUrl);
+let webSocketUrl;
+let socket;
 
-socket.onmessage = function (e) {
-	console.log("server: " + e.data);
-	updateChart(JSON.parse(e.data).prices.map((el) => el.price));
-};
+if (stockId) {
+	webSocketUrl = `ws://${window.location.host}/ws/stocks/${stockId}/`;
+	socket = new WebSocket(webSocketUrl);
+
+	socket.onmessage = function (e) {
+		console.log("server: " + e.data);
+		prices = JSON.parse(e.data).prices.map((el) => el.price);
+		updateChart();
+	};
+}
+
+let prices = [];
 
 const fetchPrices = async () => {
+	if (!stockId) {
+		return [];
+	}
 	const response = await fetch(`${window.location.href}prices/`);
 	const data = await response.json();
-	return data.prices.map((el) => el.price);
+	prices = data.prices.map((el) => el.price);
 };
 
 const ctx = document.getElementById("stock-price-chart");
 let chart;
 
-const drawChart = async (prices) => {
+const drawChart = async () => {
+	if (prices.length < 1) {
+		await fetchPrices();
+	}
+
 	chart = new Chart(ctx, {
 		type: "line",
 		data: {
@@ -43,12 +58,12 @@ const drawChart = async (prices) => {
 	});
 };
 
-drawChart(fetchPrices());
+drawChart();
 
-const updateChart = async (prices) => {
+const updateChart = async () => {
 	if (chart) {
 		chart.destroy();
 	}
 
-	await drawChart(prices);
+	await drawChart();
 };

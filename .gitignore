@@ -3,8 +3,9 @@
 *.pot
 *.pyc
 __pycache__
-db.sqlite3
+src/db.sqlite3
 media
 .DS_store
 .env
 .vscode
+data

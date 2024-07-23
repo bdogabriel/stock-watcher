@@ -1,57 +1,43 @@
 services:
+    postgres:
+        image: postgres
+        container_name: postgres
+        volumes:
+            - ./data/db:/var/lib/postgresql/data
+        env_file:
+            - .env
+
     redis:
         container_name: redis
         image: redis
         restart: always
-        volumes:
-            - redis-data:/data
         entrypoint: redis-server --port ${REDIS_PORT} --appendonly yes
+        depends_on:
+            - postgres
 
     django:
         container_name: django
         build:
-            context: ./src
-        command: python3 manage.py runserver 0.0.0.0:8000
+            context: .
+        entrypoint: /usr/src/entrypoint.sh
         volumes:
-            - stock-watcher:/usr/src/app/
+            - ./src:/usr/src/app
         ports:
             - 8001:8000
-        environment:
-            - DEBUG=${DEBUG}
-            - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
-            - ALLOWED_HOSTS=${ALLOWED_HOSTS}
-            - REDIS_PORT=${REDIS_PORT}
-            - CELERY_BROKER_URL=${CELERY_BROKER_URL}
-            - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
-            - CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP=${CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP}
-            - CELERY_BEAT_SCHEDULER=${CELERY_BEAT_SCHEDULER}
-            - CELERY_TIMEZONE=${CELERY_TIMEZONE}
+        env_file:
+            - .env
         depends_on:
+            - postgres
             - redis
 
     celery:
         container_name: celery
         build:
-            context: ./src
+            context: .
         command: celery -A stockwatcher worker --beat -l INFO
         volumes:
-            - stock-watcher:/usr/src/app/
-        environment:
-            - DEBUG=${DEBUG}
-            - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
-            - ALLOWED_HOSTS=${ALLOWED_HOSTS}
-            - REDIS_PORT=${REDIS_PORT}
-            - CELERY_BROKER_URL=${CELERY_BROKER_URL}
-            - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
-            - CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP=${CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP}
-            - CELERY_BEAT_SCHEDULER=${CELERY_BEAT_SCHEDULER}
-            - CELERY_TIMEZONE=${CELERY_TIMEZONE}
+            - ./src:/usr/src/app
+        env_file:
+            - .env
         depends_on:
-            - redis
             - django
-
-volumes:
-    stock-watcher:
-        name: stock-watcher-volume
-    redis-data:
-        name: stock-watcher-redis-data-volume

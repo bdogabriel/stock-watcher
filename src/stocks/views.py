@@ -77,4 +77,6 @@ def stock_prices(request, id):
 @login_required
 def stocks_redirect(request):
     stock = Stock.objects.filter(users=request.user).first()
+    if stock is None:
+        return redirect("stocks:add")
     return redirect("stocks:watch", pk=stock.pk)

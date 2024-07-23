@@ -34,6 +34,7 @@ incremental==22.10.0
 kombu==5.3.7
 msgpack==1.0.8
 prompt_toolkit==3.0.47
+psycopg2-binary==2.9.9
 py-moneyed==3.0
 pyasn1==0.6.0
 pyasn1_modules==0.4.0
