@@ -27,7 +27,7 @@ docker-stop:
 
 docker-clear: docker-stop
 	docker rm django celery redis
-	docker rmi redis stock-watcher-django stock-watcher-celery
+	docker rmi stock-watcher-django stock-watcher-celery
 	docker volume rm stock-watcher-volume stock-watcher-redis-data-volume
 
 rebuild: docker-clear docker

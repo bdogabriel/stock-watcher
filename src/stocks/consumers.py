@@ -3,22 +3,34 @@ import json
 
 
 class DashboardConsumer(AsyncWebsocketConsumer):
+
     async def connect(self):
-        print("connection")
+        stock_id = self.scope["url_route"]["kwargs"]["pk"]
+        self.stock_id = stock_id
+        self.room_group_name = f"stock-prices-{stock_id}"
+        await self.channel_layer.group_add(self.room_group_name, self.channel_name)
         await self.accept()
         # return await super().connect()
 
     async def disconnect(self, code):
-        print(f"connection closed with code: {code}")
+        await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
         # return await super().disconnect(code)
 
-    async def receive(self, text_data=None, bytes_data=None):
-        text_data_json = json.loads(text_data)
+    # async def receive(self, text_data=None, bytes_data=None):
+    #     text_data_json = json.loads(text_data)
+    #     prices = text_data_json["prices"]
+    #     await self.group_send_prices(prices)
+    #     return await super().receive(text_data, bytes_data)
 
-        message = text_data_json["message"]
-        sender = text_data_json["sender"]
+    # async def group_send_prices(self, prices):
+    #     await self.channel_layer.group_send(
+    #         self.room_group_name,
+    #         {
+    #             "type": "stock_prices_message",
+    #             "prices": prices,
+    #         },
+    #     )
 
-        print(message, sender)
-
-        await self.send(text_data=json.dumps({"message": message, "sender": sender}))
-        # return await super().receive(text_data, bytes_data)
+    async def stock_prices_message(self, event):
+        prices = event["prices"]
+        await self.send(text_data=json.dumps({"prices": prices}))

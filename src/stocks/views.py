@@ -1,4 +1,5 @@
-from django.views.generic import RedirectView, View, ListView, DetailView
+from django.http import JsonResponse
+from django.views.generic import View, DetailView
 from django.views.generic.edit import CreateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
@@ -6,6 +7,7 @@ from django.shortcuts import redirect
 from .forms import StockAddForm
 from .models import Stock, StockPrice
 from .serializers import StockPriceSerializer, StockSerializer
+from django.contrib.auth.decorators import login_required
 
 
 class StocksDashboardMixin(LoginRequiredMixin):
@@ -23,21 +25,7 @@ class StocksView(StocksDashboardMixin, View):  # base view
         if self.watch_stock:
             stock_serializer = StockSerializer(self.watch_stock)
             kwargs["watch_stock"] = stock_serializer.data
-            stock_price_serializer = StockPriceSerializer(
-                StockPrice.objects.filter(stock=self.watch_stock), many=True
-            )
-            kwargs["watch_stock_prices"] = stock_price_serializer.data
         return super().get_context_data(**kwargs)
-
-
-class StocksRedirectView(StocksView, RedirectView):
-    permanent = True
-    query_string = True
-    pattern_name = "stocks:dashboard"
-
-
-class StocksListView(StocksView, ListView):
-    pass
 
 
 class StocksCreateView(StocksView, CreateView):
@@ -63,7 +51,6 @@ class StocksCreateView(StocksView, CreateView):
 
 class StocksDeleteView(StocksView, DeleteView):
     def form_valid(self, form):
-        print(self.object)
         self.object.user_delete(self.request.user)
         return redirect("stocks:dashboard")
 
@@ -76,3 +63,18 @@ class StocksDetailView(StocksView, DetailView):
     def get_context_data(self, **kwargs):
         self.watch_stock = self.object
         return super().get_context_data(**kwargs)
+
+
+@login_required
+def stock_prices(request, id):
+    stock = Stock.objects.get(users=request.user, id=id)
+    stock_price_serializer = StockPriceSerializer(
+        StockPrice.objects.filter(stock=stock), many=True
+    )
+    return JsonResponse({"prices": stock_price_serializer.data})
+
+
+@login_required
+def stocks_redirect(request):
+    stock = Stock.objects.filter(users=request.user).first()
+    return redirect("stocks:watch", pk=stock.pk)
