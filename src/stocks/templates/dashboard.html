@@ -23,8 +23,8 @@
         {% if delete_stock == stock %}
           {% include 'includes/stock_confirm_delete.html' %}
         {% else %}
-          <a href="{% url 'stocks:watch' pk=stock.id %}">{% include 'includes/button.html' with name='watch-button' id=stock.id color='teal' text='Watch' %}</a>
-          <a href="{% url 'stocks:delete' pk=stock.id %}">{% include 'includes/button.html' with type='submit' color='rose' text='Remove' %}</a>
+          <a href="{% url 'stocks:watch' slug=stock.slug %}">{% include 'includes/button.html' with name='watch-button' id=stock.id color='teal' text='Watch' %}</a>
+          <a href="{% url 'stocks:delete' slug=stock.slug %}">{% include 'includes/button.html' with type='submit' color='rose' text='Remove' %}</a>
         {% endif %}
       </li>
     {% empty %}

@@ -66,12 +66,13 @@ class StocksDetailView(StocksView, DetailView):
 
 
 @login_required
-def stock_prices(request, id):
-    stock = Stock.objects.get(users=request.user, id=id)
-    stock_price_serializer = StockPriceSerializer(
-        StockPrice.objects.filter(stock=stock), many=True
-    )
-    return JsonResponse({"prices": stock_price_serializer.data})
+def stock_prices(request, slug):
+    if Stock.objects.filter(users=request.user, slug=slug).exists():
+        stock_price_serializer = StockPriceSerializer(
+            StockPrice.objects.get_last_half_hour(slug), many=True
+        )
+        return JsonResponse({"prices": stock_price_serializer.data})
+    return JsonResponse({"prices": []})
 
 
 @login_required
@@ -79,4 +80,4 @@ def stocks_redirect(request):
     stock = Stock.objects.filter(users=request.user).first()
     if stock is None:
         return redirect("stocks:add")
-    return redirect("stocks:watch", pk=stock.pk)
+    return redirect("stocks:watch", slug=stock.slug)

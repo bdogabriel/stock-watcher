@@ -13,7 +13,8 @@ services:
         restart: always
         entrypoint: redis-server --port ${REDIS_PORT} --appendonly yes
         depends_on:
-            - postgres
+            postgres:
+                condition: service_started
 
     django:
         container_name: django
@@ -27,17 +28,19 @@ services:
         env_file:
             - .env
         depends_on:
-            - postgres
-            - redis
+            redis:
+                condition: service_started
 
     celery:
         container_name: celery
         build:
             context: .
-        command: celery -A stockwatcher worker --beat -l INFO
+        entrypoint: /usr/src/celery_entrypoint.sh
         volumes:
             - ./src:/usr/src/app
         env_file:
             - .env
+        restart: on-failure
         depends_on:
-            - django
+            django:
+                condition: service_started

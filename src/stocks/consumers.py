@@ -5,9 +5,9 @@ import json
 class DashboardConsumer(AsyncWebsocketConsumer):
 
     async def connect(self):
-        stock_id = self.scope["url_route"]["kwargs"]["pk"]
-        self.stock_id = stock_id
-        self.room_group_name = f"stock-prices-{stock_id}"
+        stock_slug = self.scope["url_route"]["kwargs"]["slug"]
+        self.stock_slug = stock_slug
+        self.room_group_name = stock_slug
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)
         await self.accept()
         # return await super().connect()

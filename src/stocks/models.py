@@ -1,6 +1,9 @@
 from django.db import models
 from djmoney.models.fields import MoneyField
 from django.contrib.auth.models import User
+from django.utils.text import slugify
+from datetime import datetime, timedelta
+from django.utils.timezone import get_current_timezone
 
 
 class Stock(models.Model):
@@ -10,11 +13,13 @@ class Stock(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=["ticker", "exchange"], name="stock_ticker_exchange"
-            )
+            ),
+            models.UniqueConstraint(fields=["slug"], name="stock_slug"),
         ]
 
     ticker = models.CharField(max_length=10)
     exchange = models.CharField(max_length=10)
+    slug = models.SlugField()
     title = models.CharField(max_length=200, blank=True, null=True)
     currency = models.CharField(max_length=3, blank=True, null=True)
     current_price = MoneyField(
@@ -38,6 +43,10 @@ class Stock(models.Model):
     def save(self, *args, **kwargs):
         self.ticker = self.ticker.upper()
         self.exchange = self.exchange.upper()
+
+        if not self.id:
+            self.slug = slugify(f"{self.ticker} {self.exchange}")
+
         super().save(*args, **kwargs)
 
 
@@ -46,11 +55,18 @@ class StockPriceManager(models.Manager):
         if not data:
             return None
 
-        stock, _ = Stock.objects.update_or_create(data)
+        stock = Stock.objects.get(slug=data.get("slug"))
+        stock.current_price = data.get("current_price")
+        stock.save()
 
-        stock_price = self.create(stock=stock, price=data.get("current_price"))
+        stock_price = self.create(stock=stock, price=stock.current_price)
 
         return stock_price
+
+    def get_last_half_hour(self, slug):
+        stock = Stock.objects.get(slug=slug)
+        last_half_hour = datetime.now(tz=get_current_timezone()) - timedelta(minutes=31)
+        return self.filter(stock=stock, timestamp__gte=last_half_hour)
 
 
 class StockPrice(models.Model):
@@ -60,8 +76,8 @@ class StockPrice(models.Model):
     stock = models.ForeignKey(
         Stock, on_delete=models.CASCADE, related_name="stock_prices"
     )
-    timestamp = models.DateTimeField(auto_now_add=True)
     price = MoneyField(max_digits=19, decimal_places=4, default_currency="BRL")
+    timestamp = models.DateTimeField(auto_now_add=True)
 
     objects = StockPriceManager()
 

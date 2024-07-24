@@ -4,6 +4,7 @@ from babel import numbers as bnums
 from bs4 import BeautifulSoup as bs
 from djmoney.money import Money
 from django.utils.translation import get_language, to_locale
+from django.utils.text import slugify
 
 
 def currency_str_to_number(str_):
@@ -15,13 +16,17 @@ def currency_str_to_number(str_):
     return bnums.parse_decimal(value, locale=locale)
 
 
-def scrape_stock_price(ticker, exchange):
+def scrape_stock_price(ticker: str, exchange: str):
     if not ticker or not exchange:
         return None
+
+    ticker = ticker.upper()
+    exchange = exchange.upper()
 
     base_url = "https://www.google.com/finance/quote/"
     response = rq.get(f"{base_url}{ticker}:{exchange}")
     soup = bs(response.text, "html.parser")
+
     price_div_class = "YMlKec fxKbKc"
     title_div_class = "zzDege"
     currency_div_class = "ygUjEc"
@@ -37,6 +42,7 @@ def scrape_stock_price(ticker, exchange):
         data = {
             "ticker": ticker,
             "exchange": exchange,
+            "slug": slugify(f"{ticker} {exchange}"),
             "title": title,
             "currency": currency,
             "current_price": Money(price, currency),
