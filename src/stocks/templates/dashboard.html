@@ -13,6 +13,7 @@
 
 {% block content %}
   {{ watch_stock|json_script:'watch-stock' }}
+  {{ watch_stock_config|json_script:'watch-stock-config' }}
 
   <h1>Dashboard</h1>
 

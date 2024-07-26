@@ -5,6 +5,8 @@ from bs4 import BeautifulSoup as bs
 from djmoney.money import Money
 from django.utils.translation import get_language, to_locale
 from django.utils.text import slugify
+from datetime import datetime, timedelta
+from django.utils.timezone import get_current_timezone
 
 
 def currency_str_to_number(str_):
@@ -30,13 +32,14 @@ def scrape_stock_price(ticker: str, exchange: str):
     price_div_class = "YMlKec fxKbKc"
     title_div_class = "zzDege"
     currency_div_class = "ygUjEc"
+    last_closing_price_div_class = "P6K39c"
 
-    price = currency_str_to_number(soup.find(class_=price_div_class).text)
     title = soup.find(class_=title_div_class).text
     currency = soup.find(class_=currency_div_class).text.split("·")[1].strip()
-
-    if not title:
-        title = ""
+    last_closing_price = currency_str_to_number(
+        soup.find(class_=last_closing_price_div_class).text
+    )
+    price = currency_str_to_number(soup.find(class_=price_div_class).text)
 
     if price:
         data = {
@@ -46,8 +49,13 @@ def scrape_stock_price(ticker: str, exchange: str):
             "title": title,
             "currency": currency,
             "current_price": Money(price, currency),
+            "last_closing_price": Money(last_closing_price, currency),
         }
     else:
         data = None
 
     return data
+
+
+def get_last_half_hour():
+    return datetime.now(tz=get_current_timezone()) - timedelta(minutes=30)

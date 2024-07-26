@@ -5,10 +5,15 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
 from django.shortcuts import redirect
 from .forms import StockAddForm
-from .models import Stock, StockPrice
-from .serializers import StockPriceSerializer, StockSerializer
+from .models import Stock
+from .serializers import (
+    StockPriceSerializer,
+    StockSerializer,
+    UserStockConfigSerializer,
+)
 from django.contrib.auth.decorators import login_required
 from django.utils.text import slugify
+from helpers.stock_watcher import get_last_half_hour
 
 
 class StocksDashboardMixin(LoginRequiredMixin):
@@ -25,7 +30,11 @@ class StocksView(StocksDashboardMixin, View):  # base view
         kwargs["stocks_list"] = Stock.objects.filter(users=self.request.user)
         if self.watch_stock:
             stock_serializer = StockSerializer(self.watch_stock)
+            config_serializer = UserStockConfigSerializer(
+                self.watch_stock.users_configs.filter(user=self.request.user), many=True
+            )
             kwargs["watch_stock"] = stock_serializer.data
+            kwargs["watch_stock_config"] = config_serializer.data
         return super().get_context_data(**kwargs)
 
 
@@ -41,10 +50,8 @@ class StocksCreateView(StocksView, CreateView):
         exchange = form.data.get("exchange")
         slug = slugify(f"{ticker} {exchange}")
 
-        stock = Stock.objects.filter(slug=slug)
-
-        if stock:
-            print(stock)
+        if Stock.objects.filter(slug=slug).exists():
+            stock = Stock.objects.get(slug=slug)
             stock.user_add(self.request.user)
             return redirect("stocks:watch", slug=slug)
 
@@ -77,8 +84,10 @@ class StocksDetailView(StocksView, DetailView):
 @login_required
 def stock_prices(request, slug):
     if Stock.objects.filter(users=request.user, slug=slug).exists():
+        stock = Stock.objects.get(users=request.user, slug=slug)
         stock_price_serializer = StockPriceSerializer(
-            StockPrice.objects.get_last_half_hour(slug), many=True
+            stock.prices.filter(timestamp__gte=get_last_half_hour()),
+            many=True,
         )
         return JsonResponse({"prices": stock_price_serializer.data})
     return JsonResponse({"prices": []})

@@ -1,26 +1,24 @@
 class StockPriceChart {
 	chart;
-	stockSlug;
+	stock;
 	prices = [];
+	tunnel = { upper: [], lower: [] };
 	times = [];
 	chartHistory = 30; // minutes
 	chartForecast = 15; // minutes
 	canvas;
 	messageDiv;
-
-	tunnelConfig = {
-		basePrice: 37,
-		range: 0.001,
-		interval: 5, // minutes
-		color: "#F43F5E",
-	};
+	stockConfig;
+	tunnelColor = "#F43F5E";
 
 	constructor(
-		stockSlug,
+		stock,
+		stockConfig,
 		canvasId = "stock-price-chart-canvas",
 		messageDivId = "stock-price-chart-message-div"
 	) {
-		this.stockSlug = stockSlug;
+		this.stock = stock;
+		this.stockConfig = stockConfig;
 		this.canvas = document.getElementById(canvasId);
 		this.messageDiv = document.getElementById(messageDivId);
 	}
@@ -33,7 +31,7 @@ class StockPriceChart {
 		if (!data.length) {
 			this.messageDiv.style.display = "block";
 			this.canvas.style.display = "none";
-		} else if (data.length > 2) {
+		} else if (data.length > 3) {
 			this.messageDiv.style.display = "none";
 			this.canvas.style.display = "";
 			this.updateData(
@@ -44,14 +42,44 @@ class StockPriceChart {
 	}
 
 	updateData(prices, times) {
+		console.log("updating", prices, times);
 		this.prices = prices;
 		this.times = times;
 
 		if (this.chart) {
 			this.updateChart();
-		} else if (this.prices.length > 2) {
-			this.drawChart();
+		} else if (this.prices.length > 3) {
 			this.canvas.style.display = "";
+			this.messageDiv.style.display = "none";
+			this.updateTunnel(this.prices);
+			this.drawChart();
+		}
+	}
+
+	updateTunnel(prices) {
+		let range = this.stockConfig.tunnel_range;
+		let interval = this.stockConfig.tunnel_time_interval;
+
+		this.tunnel = {
+			upper: [],
+			lower: [],
+		};
+
+		if (interval === 0) {
+			let lcp = Number(this.stock.last_closing_price);
+			this.tunnel = {
+				upper: Array(prices.length).fill(lcp + lcp * range),
+				lower: Array(prices.length).fill(lcp - lcp * range),
+			};
+		} else {
+			for (let p = 0; p < prices.length; p += interval) {
+				this.tunnel.upper.concat(
+					Array(interval).fill(prices[p] + prices[p] * range)
+				);
+				this.tunnel.lower.concat(
+					Array(interval).fill(prices[p] - prices[p] * range)
+				);
+			}
 		}
 	}
 
@@ -65,12 +93,10 @@ class StockPriceChart {
 				datasets: [
 					{
 						label: "Tunnel Upper",
-						data: this.prices.map(
-							(el) => el + el * this.tunnelConfig.range
-						),
+						data: this.tunnel.upper,
 						borderWidth: 1,
-						borderColor: this.tunnelConfig.color,
-						backgroundColor: this.tunnelConfig.color,
+						borderColor: this.tunnelColor,
+						backgroundColor: this.tunnelColor,
 					},
 					{
 						label: "Price",
@@ -81,12 +107,10 @@ class StockPriceChart {
 					},
 					{
 						label: "Tunnel Lower",
-						data: this.prices.map(
-							(el) => el - el * this.tunnelConfig.range
-						),
+						data: this.tunnel.lower,
 						borderWidth: 1,
-						borderColor: this.tunnelConfig.color,
-						backgroundColor: this.tunnelConfig.color,
+						borderColor: this.tunnelColor,
+						backgroundColor: this.tunnelColor,
 					},
 				],
 			},
@@ -113,7 +137,7 @@ class StockPriceChart {
 					},
 					y: {
 						ticks: {
-							stepSize: 0.01,
+							stepSize: 0.5,
 						},
 					},
 				},
@@ -122,18 +146,22 @@ class StockPriceChart {
 	}
 
 	getMinMaxTimes(times) {
+		function roundDate(date) {
+			return new Date(Math.round(date.getTime() / 60000) * 60000);
+		}
+
 		const lastTime = times[times.length - 1];
 
 		let max = new Date(lastTime.getTime() + this.chartForecast * 60000);
 		let min = times[0];
 
-		if (times.length >= this.chartHistory) {
+		if (times.length > this.chartHistory) {
 			min = new Date(
 				lastTime.getTime() - (this.chartHistory - 1) * 60000
 			);
 		}
 
-		return [min, max];
+		return [roundDate(min), roundDate(max)];
 	}
 
 	updateChart() {
@@ -143,13 +171,12 @@ class StockPriceChart {
 
 		if (lastPrice) {
 			// updating data
-			this.chart.data.datasets[0].data.push(
-				lastPrice + lastPrice * this.tunnelConfig.range
-			);
 			this.chart.data.datasets[1].data.push(lastPrice);
-			this.chart.data.datasets[2].data.push(
-				lastPrice - lastPrice * this.tunnelConfig.range
-			);
+
+			this.updateTunnel(this.chart.data.datasets[1].data);
+
+			this.chart.data.datasets[0].data = this.tunnel.upper;
+			this.chart.data.datasets[2].data = this.tunnel.lower;
 
 			this.chart.data.labels.push(this.times[this.times.length - 1]);
 

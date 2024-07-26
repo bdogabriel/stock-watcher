@@ -24,10 +24,11 @@ docker-django-shell:
 	docker exec -it django /bin/sh
 
 docker-stop:
-	docker container stop django celery redis postgres
+	docker container stop celery django redis postgres
 
 docker-clear: docker-stop
 	docker rm django celery redis postgres
 	docker rmi stock-watcher-django stock-watcher-celery
+	docker volume prune -af
 
 rebuild: docker-clear docker

@@ -1,17 +1,19 @@
 from django.dispatch import receiver
 from django.db.models.signals import post_save
-from .models import StockPrice
+from .models import StockPrice, Stock
 from .serializers import StockPriceSerializer
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
+from helpers.stock_watcher import get_last_half_hour
 
 
 @receiver(post_save, sender=StockPrice)
 def send_websocket_message(instance, **kwargs):
-    slug = instance.stock.slug
+    stock = instance.stock
+    slug = stock.slug
 
     stock_price_serializer = StockPriceSerializer(
-        StockPrice.objects.get_last_half_hour(slug),
+        stock.prices.filter(timestamp__gte=get_last_half_hour()),
         many=True,
     )
 

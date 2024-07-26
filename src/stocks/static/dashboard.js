@@ -1,16 +1,22 @@
 import StockPriceChart from "./stockPriceChart.js";
 
 // variables
-const watchStockSlug = JSON.parse(
+const watchStock = JSON.parse(
 	document.getElementById("watch-stock").textContent
-).slug;
+);
 
-if (watchStockSlug) {
+console.log(watchStock);
+
+const watchStockConfig = JSON.parse(
+	document.getElementById("watch-stock-config").textContent
+)[0];
+
+if (watchStock.slug) {
 	const socket = new WebSocket(
-		`ws://${window.location.host}/ws/stocks/${watchStockSlug}/`
+		`ws://${window.location.host}/ws/stocks/${watchStock.slug}/`
 	);
 
-	const chart = new StockPriceChart(watchStockSlug);
+	const chart = new StockPriceChart(watchStock, watchStockConfig);
 	await chart.setup();
 
 	socket.onmessage = function (e) {

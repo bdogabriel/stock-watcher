@@ -1,5 +1,5 @@
 from django import forms
-from .models import Stock
+from .models import Stock, UserStockConfig
 from helpers.class_variables import ClassVariables as Class
 
 
