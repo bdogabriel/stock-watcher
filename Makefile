@@ -14,7 +14,8 @@ requirements:
 	pip freeze > requirements.txt
 
 docker:
-	docker-compose up -d --build
+	docker compose build --no-cache
+	docker compose up -d 
 
 docker-start:
 	docker container start postgres redis django celery

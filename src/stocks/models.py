@@ -65,7 +65,7 @@ class StockPriceManager(models.Manager):
 
     def get_last_half_hour(self, slug):
         stock = Stock.objects.get(slug=slug)
-        last_half_hour = datetime.now(tz=get_current_timezone()) - timedelta(minutes=31)
+        last_half_hour = datetime.now(tz=get_current_timezone()) - timedelta(minutes=30)
         return self.filter(stock=stock, timestamp__gte=last_half_hour)
 
 

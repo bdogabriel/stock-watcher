@@ -8,6 +8,7 @@ from .forms import StockAddForm
 from .models import Stock, StockPrice
 from .serializers import StockPriceSerializer, StockSerializer
 from django.contrib.auth.decorators import login_required
+from django.utils.text import slugify
 
 
 class StocksDashboardMixin(LoginRequiredMixin):
@@ -35,17 +36,25 @@ class StocksCreateView(StocksView, CreateView):
         kwargs["add_stock"] = True
         return super().get_context_data(**kwargs)
 
-    def form_invalid(self, form):
-        stock = Stock.objects.get(
-            ticker=form.data.get("ticker"), exchange=form.data.get("exchange")
-        )
+    def form_valid(self, form):
+        ticker = form.data.get("ticker")
+        exchange = form.data.get("exchange")
+        slug = slugify(f"{ticker} {exchange}")
+
+        stock = Stock.objects.filter(slug=slug)
+
         if stock:
+            print(stock)
             stock.user_add(self.request.user)
-            return redirect("stocks:dashboard")
-        return super().form_invalid(form)
+            return redirect("stocks:watch", slug=slug)
+
+        return super().form_valid(form)
 
     def get_success_url(self):
         self.object.user_add(self.request.user)
+        self.success_url = reverse_lazy(
+            "stocks:watch", kwargs={"slug": self.object.slug}
+        )
         return super().get_success_url()
 
 

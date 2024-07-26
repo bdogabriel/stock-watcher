@@ -43,6 +43,14 @@
   {% endif %}
 
   <div>
-    <canvas id="stock-price-chart"></canvas>
+    <div id="stock-price-chart-message-div" style="display: none;">
+      <h1>Please, wait a few minutes.</h1>
+      <h2>This is a new stock in our database, so we have no prices registered yet.</h2>
+    </div>
+    {% comment %} <div id="stock-price-chart-canvas-div" style="display: block;">
+      {% endcomment %}
+      <canvas id="stock-price-chart-canvas"></canvas>
+      {% comment %}
+    </div> {% endcomment %}
   </div>
 {% endblock %}

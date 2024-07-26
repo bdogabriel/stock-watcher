@@ -20,6 +20,7 @@ class StockAddForm(forms.ModelForm):
 
     exchange = forms.CharField(
         label="Exchange",
+        initial="BVMF",
         widget=forms.TextInput(
             attrs={
                 "placeholder": "Stock exhange",

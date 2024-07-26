@@ -1,14 +1,12 @@
 class StockPriceChart {
+	chart;
+	stockSlug;
 	prices = [];
 	times = [];
 	chartHistory = 30; // minutes
 	chartForecast = 15; // minutes
-	maxTime;
-	minTime;
-	chart;
-	canvasId;
-	ctx;
-	stockSlug;
+	canvas;
+	messageDiv;
 
 	tunnelConfig = {
 		basePrice: 37,
@@ -17,27 +15,50 @@ class StockPriceChart {
 		color: "#F43F5E",
 	};
 
-	constructor(canvasId, stockSlug) {
-		this.ctx = document.getElementById(canvasId);
+	constructor(
+		stockSlug,
+		canvasId = "stock-price-chart-canvas",
+		messageDivId = "stock-price-chart-message-div"
+	) {
 		this.stockSlug = stockSlug;
+		this.canvas = document.getElementById(canvasId);
+		this.messageDiv = document.getElementById(messageDivId);
 	}
 
-	fetchPrices = async () => {
-		if (!this.stockSlug) {
-			return [];
-		}
+	async setup() {
 		const response = await fetch(`${window.location.href}prices/`);
-		const data = await response.json();
-		this.prices = data.prices.map((el) => Number(el.price));
-		this.times = data.prices.map((el) => new Date(el.timestamp));
-	};
+		const jsonData = await response.json();
+		const data = jsonData.prices;
 
-	drawChart = async () => {
-		if (this.prices.length < 1) {
-			await this.fetchPrices();
+		if (!data.length) {
+			this.messageDiv.style.display = "block";
+			this.canvas.style.display = "none";
+		} else if (data.length > 2) {
+			this.messageDiv.style.display = "none";
+			this.canvas.style.display = "";
+			this.updateData(
+				data.map((el) => Number(el.price)),
+				data.map((el) => new Date(el.timestamp))
+			);
 		}
+	}
 
-		this.chart = new Chart(this.ctx, {
+	updateData(prices, times) {
+		this.prices = prices;
+		this.times = times;
+
+		if (this.chart) {
+			this.updateChart();
+		} else if (this.prices.length > 2) {
+			this.drawChart();
+			this.canvas.style.display = "";
+		}
+	}
+
+	drawChart() {
+		const [minTime, maxTime] = this.getMinMaxTimes(this.times);
+
+		this.chart = new Chart(this.canvas, {
 			type: "line",
 			data: {
 				labels: this.times,
@@ -84,8 +105,8 @@ class StockPriceChart {
 								minute: "HH:mm",
 							},
 						},
-						min: this.minTime,
-						max: this.maxTime,
+						min: minTime,
+						max: maxTime,
 						ticks: {
 							stepSize: 2,
 						},
@@ -98,48 +119,50 @@ class StockPriceChart {
 				},
 			},
 		});
-
-		this.updateXAxis();
-		this.chart.update();
-	};
-
-	updateData() {
-		const lastPrice = this.prices[this.prices.length - 1];
-
-		this.chart.data.datasets[0].data.push(
-			lastPrice + lastPrice * this.tunnelConfig.range
-		);
-		this.chart.data.datasets[1].data.push(lastPrice);
-		this.chart.data.datasets[2].data.push(
-			lastPrice - lastPrice * this.tunnelConfig.range
-		);
-
-		this.chart.data.labels.push(this.times[this.times.length - 1]);
 	}
 
-	updateXAxis = () => {
-		const lastTime = this.times[this.times.length - 1];
+	getMinMaxTimes(times) {
+		const lastTime = times[times.length - 1];
 
-		this.maxTime = new Date(
-			lastTime.getTime() + this.chartForecast * 60000
-		);
+		let max = new Date(lastTime.getTime() + this.chartForecast * 60000);
+		let min = times[0];
 
-		if (this.chart.data.datasets[1].data.length >= this.chartHistory) {
-			this.minTime = new Date(
-				lastTime.getTime() - this.chartHistory * 60000
+		if (times.length >= this.chartHistory) {
+			min = new Date(
+				lastTime.getTime() - (this.chartHistory - 1) * 60000
 			);
-		} else {
-			this.minTime = undefined;
 		}
 
-		this.chart.options.scales.x.min = this.minTime;
-		this.chart.options.scales.x.max = this.maxTime;
-	};
+		return [min, max];
+	}
 
 	updateChart() {
-		this.updateData();
-		this.updateXAxis();
-		this.chart.update();
+		const lastPrice = this.prices.length
+			? this.prices[this.prices.length - 1]
+			: undefined;
+
+		if (lastPrice) {
+			// updating data
+			this.chart.data.datasets[0].data.push(
+				lastPrice + lastPrice * this.tunnelConfig.range
+			);
+			this.chart.data.datasets[1].data.push(lastPrice);
+			this.chart.data.datasets[2].data.push(
+				lastPrice - lastPrice * this.tunnelConfig.range
+			);
+
+			this.chart.data.labels.push(this.times[this.times.length - 1]);
+
+			// updating x axis
+			const [minTime, maxTime] = this.getMinMaxTimes(
+				this.chart.data.labels
+			);
+
+			this.chart.options.scales.x.min = minTime;
+			this.chart.options.scales.x.max = maxTime;
+
+			this.chart.update();
+		}
 	}
 }
 
