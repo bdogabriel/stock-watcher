@@ -24,14 +24,16 @@ class StockPriceChart {
 	}
 
 	async setup() {
-		const response = await fetch(`${window.location.href}prices/`);
+		const response = await fetch(
+			`${window.origin}/stocks/${this.stock.slug}/prices/`
+		);
 		const jsonData = await response.json();
 		const data = jsonData.prices;
 
-		if (!data.length) {
+		if (data.length < 4) {
 			this.messageDiv.style.display = "block";
 			this.canvas.style.display = "none";
-		} else if (data.length > 3) {
+		} else {
 			this.messageDiv.style.display = "none";
 			this.canvas.style.display = "";
 			this.updateData(
@@ -94,21 +96,18 @@ class StockPriceChart {
 					{
 						label: "Tunnel Upper",
 						data: this.tunnel.upper,
-						borderWidth: 1,
 						borderColor: this.tunnelColor,
 						backgroundColor: this.tunnelColor,
 					},
 					{
 						label: "Price",
 						data: this.prices,
-						borderWidth: 1,
 						borderColor: "#14B8A6",
 						backgroundColor: "#14B8A6",
 					},
 					{
 						label: "Tunnel Lower",
 						data: this.tunnel.lower,
-						borderWidth: 1,
 						borderColor: this.tunnelColor,
 						backgroundColor: this.tunnelColor,
 					},
@@ -116,6 +115,16 @@ class StockPriceChart {
 			},
 			options: {
 				responsive: true,
+				maintainAspectRatio: false,
+				elements: {
+					point: {
+						radius: 0,
+						hitRadius: 10,
+					},
+					line: {
+						borderWidth: 4,
+					},
+				},
 				plugins: {
 					legend: {
 						display: false,
@@ -137,7 +146,7 @@ class StockPriceChart {
 					},
 					y: {
 						ticks: {
-							stepSize: 0.5,
+							stepSize: 1,
 						},
 					},
 				},

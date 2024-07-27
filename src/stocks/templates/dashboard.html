@@ -15,43 +15,43 @@
   {{ watch_stock|json_script:'watch-stock' }}
   {{ watch_stock_config|json_script:'watch-stock-config' }}
 
-  <h1>Dashboard</h1>
-
-  <h1>Stocks</h1>
-  <ul>
-    {% for stock in stocks_list %}
-      <li>
-        {{ stock.ticker }} : {{ stock.exchange }}
-        {% if delete_stock == stock %}
-          {% include 'includes/stock_confirm_delete.html' %}
-        {% else %}
-          <a href="{% url 'stocks:watch' slug=stock.slug %}">{% include 'includes/button.html' with name='watch-button' id=stock.id color='teal' text='Watch' %}</a>
-          <a href="{% url 'stocks:delete' slug=stock.slug %}">{% include 'includes/button.html' with type='submit' color='rose' text='Remove' %}</a>
+  <div class="flex flex-1">
+    <div class="{{ cardClass }} flex-none text-center items-center">
+      <h1 class="{{ cardTitleClass }}">Stocks</h1>
+      <ul class="py-6">
+        {% for stock in stocks_list %}
+          <li class="w-full">
+            {% if delete_stock == stock %}
+              {% include 'includes/stock_confirm_delete.html' %}
+            {% else %}
+              {% include 'includes/stock_tag.html' with stock=stock %}
+            {% endif %}
+          </li>
+        {% endfor %}
+        {% if add_stock %}
+          <li>
+            {% include 'includes/stock_add.html' with form=form %}
+          </li>
         {% endif %}
-      </li>
-    {% empty %}
-      <li>No stocks yet.</li>
-    {% endfor %}
-  </ul>
+      </ul>
 
-  {% if add_stock %}
-    <div class="w-1/4 my-6 p-6 mt-10 bg-white shadow-lg rounded-xl">
-      {% include 'includes/form.html' with form=form form_title='Add Stock' %}
-    </div>
-    <a href="{% url 'stocks:dashboard' %}">{% include 'includes/button.html' with color='rose' text='Cancel' %}</a>
-  {% else %}
-    <a href="{% url 'stocks:add' %}">{% include 'includes/button.html' with color='cyan' text='Add Stock' %}</a>
-  {% endif %}
+      <div>
+        {% if add_stock %}
 
-  <div>
-    <div id="stock-price-chart-message-div" style="display: none;">
-      <h1>Please, wait a few minutes.</h1>
-      <h2>This is a new stock in our database, so we have no prices registered yet.</h2>
+        {% else %}
+          <a href="{% url 'stocks:add' slug=watch_stock.slug %}">{% include 'includes/button.html' with class='w-2/3' color='cyan' text='<i class="bi bi-plus-circle"></i> Add Stock' %}</a>
+        {% endif %}
+      </div>
     </div>
-    {% comment %} <div id="stock-price-chart-canvas-div" style="display: block;">
-      {% endcomment %}
-      <canvas id="stock-price-chart-canvas"></canvas>
-      {% comment %}
-    </div> {% endcomment %}
+    <div class="{{ cardClass }} flex-1">
+      <h1 class="{{ cardTitleClass }}">{{ watch_stock.title }}</h1>
+      <div class="pt-3 h-5/6 my-3">
+        <div id="stock-price-chart-message-div" style="display: none;">
+          <p>Please, wait a few minutes.</p>
+          <p>This is a new stock in our database, so we have no prices registered yet.</p>
+        </div>
+        <canvas id="stock-price-chart-canvas"></canvas>
+      </div>
+    </div>
   </div>
 {% endblock %}

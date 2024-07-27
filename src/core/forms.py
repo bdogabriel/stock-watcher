@@ -1,7 +1,8 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
-from helpers.class_variables import ClassVariables as Class
+
+form_text_input_class = "w-full py-4 px-6 rounded-xl bg-slate-50"
 
 
 class SignupForm(UserCreationForm):
@@ -14,7 +15,7 @@ class SignupForm(UserCreationForm):
         widget=forms.TextInput(
             attrs={
                 "placeholder": "Your username",
-                "class": Class.form_text_input_class,
+                "class": form_text_input_class,
             }
         ),
     )
@@ -24,7 +25,7 @@ class SignupForm(UserCreationForm):
         widget=forms.EmailInput(
             attrs={
                 "placeholder": "Your email address",
-                "class": Class.form_text_input_class,
+                "class": form_text_input_class,
             }
         ),
     )
@@ -34,7 +35,7 @@ class SignupForm(UserCreationForm):
         widget=forms.PasswordInput(
             attrs={
                 "placeholder": "Your password",
-                "class": Class.form_text_input_class,
+                "class": form_text_input_class,
             }
         ),
     )
@@ -44,7 +45,7 @@ class SignupForm(UserCreationForm):
         widget=forms.PasswordInput(
             attrs={
                 "placeholder": "Repeat your password",
-                "class": Class.form_text_input_class,
+                "class": form_text_input_class,
             }
         ),
     )
@@ -60,7 +61,7 @@ class LoginForm(AuthenticationForm):
         widget=forms.TextInput(
             attrs={
                 "placeholder": "Your username",
-                "class": Class.form_text_input_class,
+                "class": form_text_input_class,
             }
         ),
     )
@@ -70,7 +71,7 @@ class LoginForm(AuthenticationForm):
         widget=forms.PasswordInput(
             attrs={
                 "placeholder": "Your password",
-                "class": Class.form_text_input_class,
+                "class": form_text_input_class,
             }
         ),
     )

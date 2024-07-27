@@ -11,6 +11,11 @@ urlpatterns = [
         name="add",
     ),
     path("<slug:slug>/", views.StocksDetailView.as_view(), name="watch"),
+    path(
+        "<slug:slug>/add/",
+        views.StocksCreateView.as_view(),
+        name="add",
+    ),
     path("<slug:slug>/prices/", views.stock_prices, name="prices"),
     path(
         "<slug:slug>/delete/",

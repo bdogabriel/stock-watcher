@@ -24,15 +24,17 @@ class StocksView(StocksDashboardMixin, View):  # base view
     template_name = "dashboard.html"
     success_url = reverse_lazy("stocks:dashboard")
     model = Stock
-    watch_stock = None
 
     def get_context_data(self, **kwargs):
         kwargs["stocks_list"] = Stock.objects.filter(users=self.request.user)
-        if self.watch_stock:
-            stock_serializer = StockSerializer(self.watch_stock)
+        if "watch_stock" in kwargs:
+            stock = kwargs["watch_stock"]
+
+            stock_serializer = StockSerializer(stock)
             config_serializer = UserStockConfigSerializer(
-                self.watch_stock.users_configs.filter(user=self.request.user), many=True
+                stock.users_configs.filter(user=self.request.user), many=True
             )
+
             kwargs["watch_stock"] = stock_serializer.data
             kwargs["watch_stock_config"] = config_serializer.data
         return super().get_context_data(**kwargs)
@@ -43,6 +45,8 @@ class StocksCreateView(StocksView, CreateView):
 
     def get_context_data(self, **kwargs):
         kwargs["add_stock"] = True
+        if "slug" in self.kwargs:
+            kwargs["watch_stock"] = Stock.objects.get(slug=self.kwargs["slug"])
         return super().get_context_data(**kwargs)
 
     def form_valid(self, form):
@@ -72,12 +76,13 @@ class StocksDeleteView(StocksView, DeleteView):
 
     def get_context_data(self, **kwargs):
         kwargs["delete_stock"] = self.object
+        kwargs["watch_stock"] = self.object
         return super().get_context_data(**kwargs)
 
 
 class StocksDetailView(StocksView, DetailView):
     def get_context_data(self, **kwargs):
-        self.watch_stock = self.object
+        kwargs["watch_stock"] = self.object
         return super().get_context_data(**kwargs)
 
 
