@@ -3,7 +3,11 @@
     <span class="{{ stockTagClass }} bg-teal-700">{{ stock.ticker }}</span><i class="bi bi-at text-cyan-700"></i><span class="{{ stockTagClass }} bg-cyan-700">{{ stock.exchange }}</span>
   </div>
   <div class="ml-2">
-    <a href="{% url 'stocks:watch' slug=stock.slug %}">{% include 'includes/icon_button.html' with icon='eye' %}</a>
+    {% if selected %}
+      <a href="{% url 'stocks:watch' slug=stock.slug %}">{% include 'includes/icon_button.html' with icon='eye-fill' %}</a>
+    {% else %}
+      <a href="{% url 'stocks:watch' slug=stock.slug %}">{% include 'includes/icon_button.html' with icon='eye' color='slate' disabled='1' %}</a>
+    {% endif %}
     <a href="{% url 'stocks:delete' slug=stock.slug %}">{% include 'includes/icon_button.html' with icon='trash' color='rose' %}</a>
   </div>
 </div>

@@ -1,11 +1,13 @@
+from django.db.models.base import Model as Model
+from django.db.models.query import QuerySet
 from django.http import JsonResponse
-from django.views.generic import View, DetailView
-from django.views.generic.edit import CreateView, DeleteView
+from django.views.generic import View, DetailView, RedirectView
+from django.views.generic.edit import CreateView, DeleteView, UpdateView
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.shortcuts import redirect
-from .forms import StockAddForm
-from .models import Stock
+from .forms import StockCreateForm, UserStockConfigUpdateForm
+from .models import Stock, UserStockConfig
 from .serializers import (
     StockPriceSerializer,
     StockSerializer,
@@ -20,10 +22,9 @@ class StocksDashboardMixin(LoginRequiredMixin):
     pass
 
 
-class StocksView(StocksDashboardMixin, View):  # base view
+class BaseView(StocksDashboardMixin, View):
     template_name = "dashboard.html"
     success_url = reverse_lazy("stocks:dashboard")
-    model = Stock
 
     def get_context_data(self, **kwargs):
         kwargs["stocks_list"] = Stock.objects.filter(users=self.request.user)
@@ -40,11 +41,39 @@ class StocksView(StocksDashboardMixin, View):  # base view
         return super().get_context_data(**kwargs)
 
 
-class StocksCreateView(StocksView, CreateView):
-    form_class = StockAddForm
+class StocksView(BaseView):
+    model = Stock
+
+
+class UserStocksConfigView(BaseView):
+    model = UserStockConfig
+
+
+class UserStockConfigUpdateView(UserStocksConfigView, UpdateView):
+    form_class = UserStockConfigUpdateForm
+
+    def get_object(self, _=None):
+        return UserStockConfig.objects.get(
+            user=self.request.user, stock=Stock.objects.get(slug=self.kwargs["slug"])
+        )
 
     def get_context_data(self, **kwargs):
-        kwargs["add_stock"] = True
+        kwargs["update_user_stock_config"] = True
+        kwargs["watch_stock"] = self.object.stock
+        return super().get_context_data(**kwargs)
+
+    def get_success_url(self):
+        self.success_url = reverse(
+            "stocks:watch", kwargs={"slug": self.object.stock.slug}
+        )
+        return super().get_success_url()
+
+
+class StocksCreateView(StocksView, CreateView):
+    form_class = StockCreateForm
+
+    def get_context_data(self, **kwargs):
+        kwargs["create_stock"] = True
         if "slug" in self.kwargs:
             kwargs["watch_stock"] = Stock.objects.get(slug=self.kwargs["slug"])
         return super().get_context_data(**kwargs)
@@ -63,9 +92,7 @@ class StocksCreateView(StocksView, CreateView):
 
     def get_success_url(self):
         self.object.user_add(self.request.user)
-        self.success_url = reverse_lazy(
-            "stocks:watch", kwargs={"slug": self.object.slug}
-        )
+        self.success_url = reverse("stocks:watch", kwargs={"slug": self.object.slug})
         return super().get_success_url()
 
 
@@ -86,6 +113,17 @@ class StocksDetailView(StocksView, DetailView):
         return super().get_context_data(**kwargs)
 
 
+class StocksRedirectView(StocksDashboardMixin, RedirectView):
+    def get_redirect_url(self, *args, **kwargs):
+        stock = Stock.objects.filter(users=self.request.user).first()
+        if stock is None:
+            self.pattern_name = "stocks:add"
+        else:
+            self.pattern_name = "stocks:watch"
+            kwargs["slug"] = stock.slug
+        return super().get_redirect_url(*args, **kwargs)
+
+
 @login_required
 def stock_prices(request, slug):
     if Stock.objects.filter(users=request.user, slug=slug).exists():
@@ -96,11 +134,3 @@ def stock_prices(request, slug):
         )
         return JsonResponse({"prices": stock_price_serializer.data})
     return JsonResponse({"prices": []})
-
-
-@login_required
-def stocks_redirect(request):
-    stock = Stock.objects.filter(users=request.user).first()
-    if stock is None:
-        return redirect("stocks:add")
-    return redirect("stocks:watch", slug=stock.slug)

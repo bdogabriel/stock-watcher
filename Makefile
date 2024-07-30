@@ -32,3 +32,8 @@ docker-clear: docker-stop
 	docker volume prune -af
 
 rebuild: docker-clear docker
+
+db-clear:
+	sudo rm -rf data
+	find . -path "*/migrations/*.py" -not -name "__init__.py" -delete
+	find . -path "*/migrations/*.pyc"  -delete

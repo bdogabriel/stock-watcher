@@ -18,7 +18,7 @@ class Stock(models.Model):
 
     ticker = models.CharField(max_length=10)
     exchange = models.CharField(max_length=10)
-    slug = models.SlugField()
+    slug = models.SlugField(default="")
     title = models.CharField(max_length=200, blank=True, null=True)
     currency = models.CharField(max_length=3, blank=True, null=True)
     current_price = MoneyField(
@@ -32,7 +32,7 @@ class Stock(models.Model):
     users = models.ManyToManyField(User, related_name="users")
 
     def __str__(self):
-        return f"{self.ticker},{self.exchange},{self.title},{self.currency},{self.current_price},{self.created_timestamp},{self.uptaded_timestamp};"
+        return f"{self.ticker},{self.exchange},{self.slug},{self.title},{self.currency},{self.current_price},{self.created_timestamp},{self.uptaded_timestamp};"
 
     def user_delete(self, user):
         self.users.remove(user)
@@ -85,19 +85,25 @@ class StockPrice(models.Model):
     objects = StockPriceManager()
 
     def __str__(self):
-        return f"{self.stock},{self.timestamp},{self.price};"
+        return f"{self.stock.slug},{self.timestamp},{self.price};"
 
 
 class UserStockConfig(models.Model):
     class Meta:
         verbose_name = "User Stock Config"
-        verbose_name_plural = "User Stock Stock Configs"
+        verbose_name_plural = "User Stock Configs"
+        constraints = [
+            models.UniqueConstraint(fields=["user", "stock"], name="config_user_stock"),
+        ]
 
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="stocks_configs"
     )
     stock = models.ForeignKey(
-        Stock, on_delete=models.CASCADE, related_name="users_configs"
+        Stock,
+        on_delete=models.CASCADE,
+        related_name="users_configs",
+        default="",
     )
     watch_time_interval = models.IntegerField(
         default=1
@@ -111,4 +117,4 @@ class UserStockConfig(models.Model):
     tunnel_range = models.FloatField(default=0.1)
 
     def __str__(self):
-        return f"{self.user},{self.stock},{self.watch_time_interval},{self.tunnel_time_interval},{self.tunnel_range};"
+        return f"{self.user},{self.stock.slug},{self.watch_time_interval},{self.tunnel_time_interval},{self.tunnel_range};"

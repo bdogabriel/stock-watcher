@@ -9,7 +9,8 @@ class StockPriceChart {
 	canvas;
 	messageDiv;
 	stockConfig;
-	tunnelColor = "#F43F5E";
+	// tunnelColor = "#F43F5E"; // rose
+	tunnelColor = "#F1BD2D"; // amber
 
 	constructor(
 		stock,
@@ -28,9 +29,9 @@ class StockPriceChart {
 			`${window.origin}/stocks/${this.stock.slug}/prices/`
 		);
 		const jsonData = await response.json();
-		const data = jsonData.prices;
+		const data = await jsonData.prices;
 
-		if (data.length < 4) {
+		if (data.length < 5) {
 			this.messageDiv.style.display = "block";
 			this.canvas.style.display = "none";
 		} else {
@@ -44,13 +45,12 @@ class StockPriceChart {
 	}
 
 	updateData(prices, times) {
-		console.log("updating", prices, times);
 		this.prices = prices;
 		this.times = times;
 
 		if (this.chart) {
 			this.updateChart();
-		} else if (this.prices.length > 3) {
+		} else if (this.prices.length > 4) {
 			this.canvas.style.display = "";
 			this.messageDiv.style.display = "none";
 			this.updateTunnel(this.prices);
@@ -59,8 +59,9 @@ class StockPriceChart {
 	}
 
 	updateTunnel(prices) {
-		let range = this.stockConfig.tunnel_range;
-		let interval = this.stockConfig.tunnel_time_interval;
+		prices = [63, 64, 65, 66, 63, 64, 65, 66, 63, 64, 65, 66];
+		const range = this.stockConfig.tunnel_range;
+		const interval = this.stockConfig.tunnel_time_interval;
 
 		this.tunnel = {
 			upper: [],
@@ -74,11 +75,12 @@ class StockPriceChart {
 				lower: Array(prices.length).fill(lcp - lcp * range),
 			};
 		} else {
+			this.tunnel.stepped = interval > 1;
 			for (let p = 0; p < prices.length; p += interval) {
-				this.tunnel.upper.concat(
+				this.tunnel.upper = this.tunnel.upper.concat(
 					Array(interval).fill(prices[p] + prices[p] * range)
 				);
-				this.tunnel.lower.concat(
+				this.tunnel.lower = this.tunnel.lower.concat(
 					Array(interval).fill(prices[p] - prices[p] * range)
 				);
 			}
@@ -98,6 +100,7 @@ class StockPriceChart {
 						data: this.tunnel.upper,
 						borderColor: this.tunnelColor,
 						backgroundColor: this.tunnelColor,
+						stepped: this.tunnel.stepped,
 					},
 					{
 						label: "Price",
@@ -110,7 +113,17 @@ class StockPriceChart {
 						data: this.tunnel.lower,
 						borderColor: this.tunnelColor,
 						backgroundColor: this.tunnelColor,
+						stepped: this.tunnel.stepped,
 					},
+					// {
+					// 	label: "Last Closing Price",
+					// 	data: Array(this.prices.length).fill(
+					// 		Number(this.stock.last_closing_price)
+					// 	),
+					// 	borderColor: "gray",
+					// 	backgroundColor: "gray",
+					// 	borderDash: [8, 8],
+					// },
 				],
 			},
 			options: {
@@ -182,10 +195,18 @@ class StockPriceChart {
 			// updating data
 			this.chart.data.datasets[1].data.push(lastPrice);
 
+			// this.chart.data.datasets[3].data.push(
+			// 	Number(this.stock.last_closing_price)
+			// );
+
 			this.updateTunnel(this.chart.data.datasets[1].data);
 
-			this.chart.data.datasets[0].data = this.tunnel.upper;
-			this.chart.data.datasets[2].data = this.tunnel.lower;
+			this.chart.data.datasets[0].data.push(
+				this.tunnel.upper[this.tunnel.upper.length - 1]
+			);
+			this.chart.data.datasets[2].data.push(
+				this.tunnel.lower[this.tunnel.upper.length - 1]
+			);
 
 			this.chart.data.labels.push(this.times[this.times.length - 1]);
 

@@ -5,8 +5,6 @@ const watchStock = JSON.parse(
 	document.getElementById("watch-stock").textContent
 );
 
-console.log(watchStock);
-
 const watchStockConfig = JSON.parse(
 	document.getElementById("watch-stock-config").textContent
 )[0];

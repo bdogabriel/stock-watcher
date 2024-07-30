@@ -24,11 +24,15 @@
             {% if delete_stock == stock %}
               {% include 'includes/stock_confirm_delete.html' %}
             {% else %}
-              {% include 'includes/stock_tag.html' with stock=stock %}
+              {% if watch_stock.slug == stock.slug %}
+                {% include 'includes/stock_tag.html' with stock=stock selected='1' %}
+              {% else %}
+                {% include 'includes/stock_tag.html' with stock=stock %}
+              {% endif %}
             {% endif %}
           </li>
         {% endfor %}
-        {% if add_stock %}
+        {% if create_stock %}
           <li>
             {% include 'includes/stock_add.html' with form=form %}
           </li>
@@ -36,7 +40,7 @@
       </ul>
 
       <div>
-        {% if add_stock %}
+        {% if create_stock %}
 
         {% else %}
           <a href="{% url 'stocks:add' slug=watch_stock.slug %}">{% include 'includes/button.html' with class='w-2/3' color='cyan' text='<i class="bi bi-plus-circle"></i> Add Stock' %}</a>
@@ -44,7 +48,24 @@
       </div>
     </div>
     <div class="{{ cardClass }} flex-1">
-      <h1 class="{{ cardTitleClass }}">{{ watch_stock.title }}</h1>
+      <div class="{{ cardTitleClass }} flex">
+        {% if watch_stock %}
+          <h1 class="flex-1">
+            {% if watch_stock.title %}
+              {{ watch_stock.title }}
+            {% else %}
+              {{ watch_stock.ticker }}
+            {% endif %}
+          </h1>
+          {% if update_user_stock_config %}
+            {% include 'includes/stock_config.html' %}
+          {% else %}
+            <a href="{% url 'stocks:config' slug=watch_stock.slug %}">{% include 'includes/icon_button.html' with icon='sliders' color='cyan' %}</a>
+          {% endif %}
+        {% else %}
+          <h1>Add Stock to Watch</h1>
+        {% endif %}
+      </div>
       <div class="pt-3 h-5/6 my-3">
         <div id="stock-price-chart-message-div" style="display: none;">
           <p>Please, wait a few minutes.</p>
